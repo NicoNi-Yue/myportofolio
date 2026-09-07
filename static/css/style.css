@@ -193,3 +193,17 @@ h1, .brand {
         justify-content: flex-start;
     }
 }
+
+/*This web will have a smooth scroll feature 
+when approaching to another section*/
+
+
+/*Skills Section*/
+.skill-grid{
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    grid-template-areas:
+        "identity photo"
+        "details  photo";
+    gap: 1.5rem 3rem;
+}
