@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils import timezone #melengkapi fungsi is_ongoing yang masih inaccurate
 
 class Experience(models.Model):
     EXPERIENCE_CHOICES = [
@@ -16,15 +17,60 @@ class Experience(models.Model):
     description = models.TextField()
     category = models.CharField(max_length=20, choices=EXPERIENCE_CHOICES, default='full-time')
     thumbnail = models.URLField(blank=True, null=True)
-    started_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(default=timezone.now()) #(auto_now_add=True)
     ended_at = models.DateTimeField(blank=True, null=True)
     def __str__(self):
         return self.title
     
     @property
     def is_ongoing(self):
-        return self.ended_at is None
+        if self.ended_at is None: 
+            return True
+        
+        return self.ended_at > timezone.now()
     
+    @property
+    def image(self):
+        if self.thumbnail is None:
+            return False
+        else:
+            return True
+    
+class Education(models.Model):
+    EDUCATION_CHOICES = [
+        ('SD', 'Elementary School'),
+        ('SMP', 'Junior High School'),
+        ('SMA', 'Senior High School'),
+        ('Kuliah', 'College'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    category = models.CharField(max_length=10, choices=EDUCATION_CHOICES, default='full-time')
+    logo = models.URLField(blank=True, null=True)
+    started_at = models.DateTimeField(default=timezone.now())
+    ended_at = models.DateTimeField(blank=True, null=True)
+    def __str__(self):
+        return self.title
+    
+    @property
+    def is_ongoing(self):
+        if self.ended_at is None: 
+            return True
+        
+        return self.ended_at > timezone.now()
+    
+    @property
+    def image(self):
+        if self.logo is None:
+            return False
+        else:
+            return True
+    
+    
+#Blank Template
+#thumbnail="https://placehold.co/600x400",
 #Penjelasan Kode:
 
 # models.Model adalah kelas dasar yang digunakan untuk mendefinisikan model dalam Django.
@@ -39,3 +85,22 @@ class Experience(models.Model):
 # ended_at adalah field bertipe DateTimeField yang dapat dibiarkan kosong dan nilainya dapat diatur ke None.
 # Method __str__ digunakan untuk mengembalikan representasi string dari objek (dalam hal ini judul pengalaman).
 # Decorator @property digunakan untuk membuat atribut read-only yang nilainya merupakan hasil perhitungan dari atribut lain. Dalam kasus ini, is_ongoing akan bernilai True jika ended_at adalah None.
+
+#Full Template
+# Experience.objects.create(
+#     title="Test C",
+#     description="Description of Test C",
+#     category="full-time",
+#     thumbnail="https://wallpapercave.com/wp/wp9414303.jpg",
+#     started_at="2025-11-01",
+#     ended_at="2025-12-01"
+# )
+
+# Education.objects.create(
+#     title="Test C",
+#     description="Description of Test C",
+#     category="full-time",
+#     logo="https://wallpapercave.com/wp/wp9414303.jpg",
+#     started_at="2025-08-01",
+#     ended_at="2029-07-31"
+# )

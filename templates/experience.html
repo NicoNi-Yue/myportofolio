@@ -16,8 +16,7 @@
             <nav>
                 <a href="{% url 'main:show_main' %}">Profile</a>
                 <a href="{% url 'main:show_experience' %}">Experience</a>
-                <a href="#skills">Skills</a>
-                <a href="#achievement", display>Achievement</a>
+                <a href="{% url 'main:show_education' %}">Education</a>
             </nav>
         </div>
     </header>
@@ -29,27 +28,37 @@
                 <h1>Experience</h1>
 
                 <div class="experience-grid">
-                    {% for experience in experience_list %}
-                        <article class="experience-card">
-                            <span class="experience-category">
-                                {{ experience.get_category_display }}
-                            </span>
-                            <h2>{{ experience.title }}</h2>
-                            <p class="experience-description">
-                                {{ experience.description }}
-                            </p>
+                    <div class="experience-grid">
+                        {% for experience in experience_list %}
+                            <article class="experience-card">
+                                {% if experience.image %}
+                                    <div class="experience-thumbnail-wrapper">
+                                        <img src="{{ experience.thumbnail }}" alt="{{ experience.title }}">
+                                    </div>
+                                {% endif %}
 
-                            {% if experience.is_ongoing %}
-                                <p class="experience-status">Sedang berlangsung</p>
-                            {% else %}
-                                <p class="experience-status">Selesai</p>
-                            {% endif %}
-                        </article>
-                    {% empty %}
-                        <p class="empty-state">
-                            Belum ada pengalaman yang ditambahkan.
-                        </p>
-                    {% endfor %}
+                                <div class="experience-content">
+                                    <span class="experience-category">
+                                        {{ experience.get_category_display }}
+                                    </span>
+                                    <h2>{{ experience.title }}</h2>
+                                    <p class="experience-description">
+                                        {{ experience.description }}
+                                    </p>
+
+                                    {% if experience.is_ongoing %}
+                                        <p class="experience-status">(Sedang Berlangsung) {{experience.started_at|date:"F Y"}} - Present</p>
+                                    {% else %}
+                                        <p class="experience-status">(Selesai) {{experience.started_at|date:"F Y"}} - {{experience.ended_at|date:"F Y"}}</p>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% empty %}
+                            <p class="empty-state">
+                                Mahasiswa ini belum menambahkan pengalaman terbaiknya. Stay Tuned.
+                            </p>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </section>
