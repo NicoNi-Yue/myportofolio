@@ -32,6 +32,9 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "nicholas52-myportofolio.pws.cs.ui.ac
 
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
+# gunakan https:// untuk trailing urlnya
+CSRF_TRUSTED_ORIGINS = ["https://nicholas52-myportofolio.pws.cs.ui.ac.id"]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -60,7 +63,7 @@ ROOT_URLCONF = 'portofolio.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

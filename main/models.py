@@ -68,6 +68,16 @@ class Education(models.Model):
         else:
             return True
     
+class Project(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    tech_stack = models.CharField(max_length=255)
+    project_url = models.URLField(blank=True)
+    project_image_url = models.URLField(blank=True, max_length=500)
+
+    def __str__(self):
+        return self.title
     
 #Blank Template
 #thumbnail="https://placehold.co/600x400",
@@ -97,10 +107,10 @@ class Education(models.Model):
 # )
 
 # Education.objects.create(
-#     title="Test C",
-#     description="Description of Test C",
-#     category="full-time",
-#     logo="https://wallpapercave.com/wp/wp9414303.jpg",
-#     started_at="2025-08-01",
-#     ended_at="2029-07-31"
+#     title="SDs YPPI Perawang",
+#     description="",
+#     category="SD",
+#     logo="https://tse2.mm.bing.net/th/id/OIP.uqMdAol64tmutBk2IJqnZwAAAA?r=0&pid=Api&P=0&h=180",
+#     started_at="2013-07-01",
+#     ended_at="2019-06-01"
 # )
