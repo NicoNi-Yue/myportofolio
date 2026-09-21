@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from main.models import Experience, Education, Project
-from main.forms import ProjectForm
+from main.forms import ProjectForm, ExperienceForm
 
 
 def show_main(request):
@@ -27,6 +27,50 @@ def show_experience(request):
     }
     return render(request, "experience.html", context)
 
+def create_experience(request):
+    form = ExperienceForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "experience baru berhasil ditambahkan!")
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Nicholas",
+        "form": form,
+    }
+    return render(request, "experience_form.html", context)
+
+def delete_experience(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+
+    if request.method == "POST":
+        experience.delete()
+        messages.success(request, "experience berhasil dihapus!")
+        return redirect("main:show_experience")
+
+    return redirect("main:show_experience")
+
+def edit_experience(request, id):
+    # Retrieve/recall objek yang mau di-update berdasarkan ID
+    experience = get_object_or_404(Experience, pk=id)
+
+    if request.method == "POST":
+        # Pass instance=experience supaya Django tahu ini UPDATE, bukan ADD
+        form = ExperienceForm(request.POST, instance=experience)
+        if form.is_valid():
+            form.save()
+            return redirect('main:show_experience')
+    else:
+        # Isi form dengan data awal dari objek tersebut
+        form = ExperienceForm(instance=experience)
+
+    context = {
+        'form': form,
+        'experience': experience,
+    }
+    return render(request, 'experience_form.html', context)
+
 def show_education(request):
     context = {
         "name": "Nicholas",
@@ -45,7 +89,7 @@ def show_projects(request):
     title_query = request.GET.get("title", "").strip()
 
     context = {
-        "name": "Burhan",
+        "name": "Nicholas",
         "project_list": projects,
         "title_query": title_query,
     }
@@ -60,7 +104,7 @@ def create_project(request):
         return redirect("main:show_projects")
 
     context = {
-        "name": "Burhan",
+        "name": "Nicholas",
         "form": form,
     }
     return render(request, "projects_form.html", context)
@@ -74,6 +118,26 @@ def delete_project(request, project_id):
         return redirect("main:show_projects")
 
     return redirect("main:show_projects")
+
+def edit_project(request, id):
+    # Retrieve/recall objek yang mau di-update berdasarkan ID
+    project = get_object_or_404(Project, pk=id)
+
+    if request.method == "POST":
+        # Pass instance=project supaya Django tahu ini UPDATE, bukan ADD
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            return redirect('main:show_projects')
+    else:
+        # Isi form dengan data awal dari objek tersebut
+        form = ProjectForm(instance=project)
+
+    context = {
+        'form': form,
+        'project': project,
+    }
+    return render(request, 'projects_form.html', context)
 
 def get_projects_json(request):
     title_query = request.GET.get("title", "").strip()

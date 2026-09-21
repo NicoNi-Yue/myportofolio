@@ -297,10 +297,12 @@ h1, .brand {
     font-size: 2rem;
 }
 
-.education-grid, .experience-grid{
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+.education-grid, .experience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 20px;
+  max-width: 1000px; 
+  margin: 0 auto;
 }
 
 .education-card, .experience-card{
@@ -429,8 +431,8 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     background: var(--ink);
 }
 
-/* projects */
-.project-header {
+/* projects and experience */
+.project-header, .experience-header {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -439,16 +441,16 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     margin-bottom: 1.5rem;
 }
 
-.project-grid {
+.project-grid, .experience-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.project-grid .experience-card {
+.project-grid .experience-card, .experience-grid .experience-card  {
     display: flex;
     flex-direction: column;
 }
 
-.project-image {
+.project-image, .experience-image {
     display: block;
     width: 100%;
     height: auto;
@@ -460,24 +462,24 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     margin-bottom: 0;
 }
 
-.project-add-button {
+.project-add-button, .experience-add-button  {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
 }
 
-.project-add-button span {
+.project-add-button span, .experience-add-button span {
     font-size: 1.25rem;
     line-height: 1;
 }
 
-.project-search {
+.project-search, .experience-search {
     display: flex;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
-.project-search__input {
+.project-search__input, .experience-search__input {
     width: 100%;
     min-width: 0;
     padding: 0.7rem;
@@ -488,12 +490,12 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     font: inherit;
 }
 
-.project-search__input:focus {
+.project-search__input:focus, .experience-search__input:focus {
     outline: 2px solid var(--accent);
     border-color: var(--accent);
 }
 
-.project-actions {
+.project-actions, .experience-actions {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -501,26 +503,26 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     margin-top: 1rem;
 }
 
-.project-actions .button {
+.project-actions .button, .experience-actions .button {
     font-size: 0.85rem;
     font-weight: 600;
 }
 
-.project-card-actions {
+.project-card-actions, .experience-card-actions {
     display: flex;
     flex-direction: column;
     margin-top: auto;
 }
 
 .hide {
-    display: none !important;
+    display: none;
 }
 
-.project-actions .experience-status {
+.project-actions .experience-status, .experience-actions .experience-status {
     margin-top: 0;
 }
 
-.project-delete-modal {
+.project-delete-modal, .experience-delete-modal {
     display: none;
     position: fixed;
     inset: 0;
@@ -537,11 +539,11 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     justify-content: center;
 }
 
-.project-delete-modal:popover-open {
+.project-delete-modal:popover-open, .experience-delete-modal:popover-open {
     display: flex;
 }
 
-.project-delete-modal__backdrop {
+.project-delete-modal__backdrop, .experience-delete-modal__backdrop {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -552,7 +554,7 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     cursor: default;
 }
 
-.project-delete-modal__content {
+.project-delete-modal__content, .experience-delete-modal__content {
     position: relative;
     z-index: 1;
     width: min(100%, 480px);
@@ -563,7 +565,7 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     box-shadow: 0 1rem 3rem rgba(28, 25, 23, 0.22);
 }
 
-.project-delete-modal__content h2 {
+.project-delete-modal__content h2, .experience-delete-modal__content h2 {
     margin: 0 0 0.75rem;
     font-family:
         "Space Grotesk",
@@ -572,7 +574,7 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     font-size: 1.5rem;
 }
 
-.project-delete-modal__close {
+.project-delete-modal__close, .experience-delete-modal__close  {
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -585,7 +587,7 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
     cursor: pointer;
 }
 
-.project-delete-modal__actions {
+.project-delete-modal__actions, .experience-delete-modal__actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
@@ -597,30 +599,30 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
 }
 
 @media (max-width: 600px) {
-    .project-header {
+    .project-header, .experience-header {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    .project-add-button {
+    .project-add-button, .experience-add-button {
         width: 100%;
         justify-content: center;
     }
 
-    .project-search {
+    .project-search, .experience-search {
         flex-direction: column;
     }
 
-    .project-search .button {
+    .project-search .button, .experience-search .button {
         width: 100%;
     }
 
-    .project-delete-modal {
+    .project-delete-modal, .experience-delete-modal {
         align-items: flex-end;
         padding: 0;
     }
 
-    .project-delete-modal__content {
+    .project-delete-modal__content, .experience-delete-modal__content {
         width: 100%;
         padding: 1.25rem;
         border-radius: var(--radius) var(--radius) 0 0;
@@ -634,4 +636,23 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
         width: 100%;
         text-align: center;
     }
+
+    .experience-grid {
+        grid-template-columns: 1fr; /* Jadi 1 kolom di layar HP */
+    }
+}
+
+.experience-card-actions {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+}
+
+.experience-header h1 {
+    margin-bottom: 0;
+}
+
+.experience-grid .experience-card {
+    align-items: stretch;
+    text-align: left;
 }
