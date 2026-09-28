@@ -63,9 +63,11 @@ def logout_user(request):
     return response
 
 def show_experience(request):
+    is_editor = request.user.groups.filter(name="Editor").exists()
     context = {
         "name": "Nicholas",
         "experience_list": Experience.objects.all(),
+        "is_editor": is_editor, 
     }
     return render(request, "experience.html", context)
 
@@ -103,7 +105,7 @@ def delete_experience(request, experience_id):
 
 @login_required(login_url="/login/") 
 def edit_experience(request, id):
-    if not request.user.is_superuser:
+    if not request.user.has_perm('main.change_experience'):
         raise PermissionDenied
     
     # Retrieve/recall objek yang mau di-update berdasarkan ID
@@ -151,7 +153,7 @@ def show_projects(request):
 
 @login_required(login_url="/login/") 
 def create_project(request):
-    if not request.user.is_superuser:
+    if not request.user.has_perm('main.create_project'):
         raise PermissionDenied
     
     form = ProjectForm(request.POST or None)
@@ -183,7 +185,7 @@ def delete_project(request, project_id):
 
 @login_required(login_url="/login/") 
 def edit_project(request, id):
-    if not request.user.is_superuser:
+    if not request.user.has_perm('main.change_project'):
         raise PermissionDenied
     
     # Retrieve/recall objek yang mau di-update berdasarkan ID
