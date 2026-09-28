@@ -10,10 +10,12 @@
                 
                 <div class="experience-header">
                     <h1>Experiences</h1>
-                    <a href="{% url 'main:create_experience' %}" class="button experience-add-button">
-                        <span aria-hidden="true">+</span>
-                        Tambah Experience
-                    </a>
+                    {% if user.is_superuser %}
+                        <a href="{% url 'main:create_experience' %}" class="button experience-add-button">
+                            <span aria-hidden="true">+</span>
+                            Tambah Experience
+                        </a>
+                    {% endif %}
                 </div>
 
                 <form method="get" action="{% url 'main:show_experience' %}" class="experience-search">
@@ -47,8 +49,10 @@
 
                             <div class="experience-card-actions">
                                 <div class="experience-actions">
-                                    <a href="{% url 'main:edit_experience' experience.id %}" class="button button-secondary">Edit</a>
-                                    {% include "components/experience_delete_modal.html" with experience=experience %}
+                                    {% if user.is_superuser %}
+                                        <a href="{% url 'main:edit_experience' experience.id %}" class="button button-secondary">Edit</a>
+                                        {% include "components/experience_delete_modal.html" with experience=experience %}
+                                    {% endif %}
                                 </div>
                             </div>
                         </article>
@@ -56,7 +60,7 @@
                         {% if title_query %}
                             <p class="empty-state">Tidak ada Pengalaman dengan nama tersebut.</p>
                         {% else %}
-                            <p class="empty-state">Belum ada Pengalaman yang ditambahkan.</p>
+                            <p class="empty-state">Mahasiswa ini belum menambahkan pengalaman terbaiknya. Stay Tuned.</p>
                         {% endif %}
                     {% endfor %}
                 </div>
