@@ -94,3 +94,18 @@ Sedangkan untuk {% csrf_token %}, itu wajib dimasukkan ke dalam form untuk melin
 - Data yang diambil ini bentuknya masih berupa objek Python atau QuerySet. Di sinilah proses serialization dibutuhkan. 
 
 Objek model Django itu merupakan struktur data kompleks yang tidak bisa langsung ditransmisikan lewat protokol HTTP, karena HTTP cuma bisa mengirim teks atau data sederhana. Serialization bertugas memproses dan mengubah objek Python tersebut menjadi format teks terstruktur yang universal, yaitu JSON. Setelah datanya diubah ke bentuk JSON, view akan membungkusnya ke dalam JsonResponse untuk dikirimkan kembali ke client.
+
+
+### Tugas 5
+
+1. Debouncing itu ibaratkan kita memberi jeda waktu atau menahan diri sebentar sebelum melakukan sesuatu. Di fitur pencarian yang pakai AJAX, ini berguna agar server tidak kelelahan menerima permintaan secara serentak setiap kali adanya input yang diterima, contohnya: mengetik satu huruf, lalu ketik lagi. Dengan teknik ini, permintaan pencarian cuma akan dikirim setelah benar-benar berhenti mengetik/menerima input sejenak.
+
+2. Fungsi "await" ketika pakai fetch() itu untuk menyuruh program bersabar menunggu hingga datanya benar-benar selesai diambil sebelum lanjut ke baris kode berikutnya. 
+
+Kalau kita memilih untuk tidak menggunakan await, programnya akan langsung jalan terus padahal datanya belum datang. Hasilnya, kamu cuma akan dapat sebuah "janji"/"promise" kosong dari sistem yang belum ditepati, bukan data aslinya, dan ini bakal bikin programmu error saat mencoba membaca data tersebut.
+
+3. Serangan XSS atau Cross-Site Scripting itu adalah celah di mana orang jahat mencoba dan bisa menyelundupkan kode jebakan ke dalam website kita, impactnya adalah orang tersebut bisa menyerang pengunjung lain. 
+
+Data yang ditampilkan lewat AJAX atau JavaScript itu lebih rentan karena seringkali kode langsung dimasukkan ke halaman secara mentah-mentah, sehingga browser bisa termanipulasi dan malah menjalankan kode anomali tersebut. 
+
+Berbeda halnya kalau langsung lewat template Django, karena Django sudah secara otomatis menyaring dan mengamankan teks dari kode-kode berbahaya sebelum ditampilkan ke layar.

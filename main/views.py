@@ -65,9 +65,11 @@ def logout_user(request):
 
 def show_experience(request):
     is_editor = request.user.groups.filter(name="Editor").exists()
+    title_query = request.GET.get("title", "").strip()
     context = {
         "name": "Nicholas",
-        "experience_list": Experience.objects.all(),
+        "form": ExperienceForm(), 
+        "title_query": title_query,
         "is_editor": is_editor, 
     }
     return render(request, "experience.html", context)
@@ -259,6 +261,48 @@ def create_project_ajax(request):
         project = form.save()
         return JsonResponse(
             {"message": "Proyek berhasil ditambahkan.", "pk": str(project.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+def get_experiences_json(request):
+    title_query = request.GET.get("title", "").strip()
+    experiences = Experience.objects.all()
+
+    if title_query:
+        experiences = experiences.filter(title__icontains=title_query)
+
+    data = []
+    for exp in experiences:
+        data.append({
+            "pk": str(exp.id),
+            "fields": {
+                "title": exp.title,
+                "description": exp.description,
+                "category_display": exp.get_category_display(),
+                "thumbnail": exp.thumbnail,
+                "is_ongoing": exp.is_ongoing,
+                "started_at_fmt": exp.started_at.strftime("%B %Y") if exp.started_at else "",
+                "ended_at_fmt": exp.ended_at.strftime("%B %Y") if exp.ended_at else "",
+            }
+        })
+
+    return JsonResponse(data, safe=False)
+
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya superuser yang dapat menambahkan experience."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        exp = form.save()
+        return JsonResponse(
+            {"message": "Experience berhasil ditambahkan.", "pk": str(exp.id)},
             status=201,
         )
 
