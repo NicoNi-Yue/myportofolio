@@ -5,10 +5,10 @@
 }
 
 :root {
-    --ink: #1c1917;
-    --paper: rgb(255, 244, 229);
-    --accent: #d95d39;
-    --accent-dark: #a8442a;
+    --ink: #ffeeeee7;
+    --paper: rgb(36, 5, 58);
+    --accent: lab(44.51% 45.36 -41.43 / 0.815);
+    --accent-dark: #99341a;
     --line: #e3d9c9;
     --text-muted: #6b6459;
     --radius: 4px;
@@ -31,21 +31,38 @@ h1, .brand {
 }
 
 .container {
-    max-width: 960px;
+    max-width: 620px;
     margin: 0 auto;
     padding: 0 1.5rem;
 }
 
 .site-header {
-    background-color: var(--accent);
-    border-bottom:3px solid black;
+    position: fixed;
+    top: 1rem;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
+    max-width: 620px;
+    width: fit-content;
+    margin: 0 auto;
+    background-color: rgba(36, 5, 58, 0.75); 
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.site-header.hide-header {
+    transform: translateY(-150%);
 }
 
 .site-header .container {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; 
     align-items: center;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem;
 }
 
 .brand {
@@ -57,6 +74,7 @@ h1, .brand {
 
 .site-header nav {
     display: flex;
+    flex-wrap: wrap;
     gap: 2rem;
 }
 
@@ -65,6 +83,16 @@ h1, .brand {
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 500;
+}
+
+@media (max-width: 600px) {
+    .site-header nav {
+        gap: 0.75rem;
+    }
+    
+    .site-header nav a, .nav-user {
+        font-size: 0.85rem;
+    }
 }
 
 .hero {
@@ -225,8 +253,11 @@ h1, .brand {
     /* display:flex;
     flex-direction: column; */
     border-radius: 10px;
-    background-color: #faf6f0;;
-    border: 1px solid var(--line);
+    background-color: rgba(36, 5, 58, 0.75); 
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /*border: 1px solid var(--line);*/
     padding: 1.5rem;
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }

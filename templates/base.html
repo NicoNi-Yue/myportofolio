@@ -14,7 +14,6 @@
     <body>
         <header class="site-header">
             <div class="container">
-                <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
                 <nav>
                     <a href="{% url 'main:show_main' %}">Profile</a>
                     <a href="{% url 'main:show_experience' %}">Experience</a>
@@ -40,4 +39,18 @@
         
         {% include 'components/toast.html' %}
     </body>
+
+    <script>
+        let lastScrollY = window.scrollY;
+        const header = document.querySelector('.site-header');
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > lastScrollY && window.scrollY > 50) {
+                header.classList.add('hide-header'); 
+            } else {
+                header.classList.remove('hide-header'); 
+            }
+            lastScrollY = window.scrollY;
+        });
+    </script>
 </html>
