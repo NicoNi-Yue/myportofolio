@@ -6,12 +6,14 @@
 
 :root {
     --ink: #ffeeeee7;
+    --dark-ink: #0000008f;
     --paper: rgb(36, 5, 58);
     --accent: lab(44.51% 45.36 -41.43 / 0.815);
     --accent-dark: #99341a;
     --line: #e3d9c9;
     --text-muted: #6b6459;
     --radius: 4px;
+    --accent-card: rgb(33, 119, 211);
 }
 
 /*Reuse from old project*/
@@ -301,10 +303,6 @@ h1, .brand {
     display:none;
 }
 
-.achievement-grid{
-
-}
-
 .achievement-card{
     margin: 4 4 8 8;
 
@@ -342,6 +340,7 @@ h1, .brand {
     gap: 1.5rem;
     padding: 1.25rem;
     background-color: #fff;
+    color: var(--accent-card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
 }
@@ -375,6 +374,7 @@ h1, .brand {
 .education-card h2, .experience-card h2{
     margin: 0.5rem 0;
     font-size: 1.25rem;
+    
 }
 
 .education-status, .experience-status{
@@ -460,6 +460,7 @@ Selengkapnya dapat dilihat pada link Gemini yang tertera pada README Individual 
 
 .button-secondary {
     background: var(--ink);
+    color: var(--dark-ink);
 }
 
 /* projects and experience */

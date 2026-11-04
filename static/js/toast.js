@@ -1,6 +1,6 @@
 let toastTimer;
 
-function showToast(title, message, type = 'normal', duration = 3333) {
+function showToast(title, message, type = 'normal', duration = 2500) {
   const toastComponent = document.getElementById('toast-component');
   const toastTitle = document.getElementById('toast-title');
   const toastMessage = document.getElementById('toast-message');
@@ -35,9 +35,10 @@ function showToast(title, message, type = 'normal', duration = 3333) {
   toastComponent.classList.add('toast-show');
 
   // Animasi hilang otomatis
+  duration = message.length * 50;
   toastTimer = setTimeout(() => {
       toastComponent.classList.remove('toast-show');
       toastComponent.classList.add('toast-hidden');
-      toastTimer = setTimeout(() => toastComponent.hidePopover(), 300);
+      toastTimer = setTimeout(() => toastComponent.hidePopover(), 400);
   }, duration);
 }
