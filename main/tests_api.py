@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from main.models import Project
+from main.models import Education, Experience, Project
 
 
 class ProjectAPITest(APITestCase):
@@ -136,3 +136,59 @@ class ProjectAPITest(APITestCase):
             self.list_url, self.payload, format="json", HTTP_X_CSRFTOKEN=token,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+class PortfolioSectionAPITest(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_superuser(username="section-owner", password="test-password", email="section@example.com")
+        self.editor = User.objects.create_user(username="section-editor", password="test-password")
+        self.editor.groups.add(Group.objects.create(name="Editor"))
+        self.visitor = User.objects.create_user(username="section-visitor", password="test-password")
+        self.experience = Experience.objects.create(title="Internship", description="Work", category="internship")
+        self.education = Education.objects.create(title="University", description="Study", category="Kuliah")
+
+    def test_experience_and_education_public_read_and_search(self):
+        for endpoint, obj in (("api:experience-list", self.experience), ("api:education-list", self.education)):
+            url = reverse(endpoint)
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data[0]["id"], str(obj.id))
+            self.assertEqual(len(self.client.get(url, {"title": "not-found"}).data), 0)
+
+    def test_guest_and_regular_user_cannot_mutate_sections(self):
+        for endpoint, detail, obj in (("api:experience-list", "api:experience-detail", self.experience),
+                                      ("api:education-list", "api:education-detail", self.education)):
+            list_url = reverse(endpoint)
+            detail_url = reverse(detail, args=[obj.id])
+            for user in (None, self.visitor):
+                self.client.force_authenticate(user=user)
+                self.assertEqual(self.client.post(list_url, {"title": "Denied", "description": "x"}, format="json").status_code, 403)
+                self.assertEqual(self.client.patch(detail_url, {"title": "Denied"}, format="json").status_code, 403)
+                self.assertEqual(self.client.delete(detail_url).status_code, 403)
+
+    def test_editor_can_patch_but_cannot_create_or_delete(self):
+        self.client.force_authenticate(user=self.editor)
+        for endpoint, detail, obj in (("api:experience-list", "api:experience-detail", self.experience),
+                                      ("api:education-list", "api:education-detail", self.education)):
+            self.assertEqual(self.client.post(reverse(endpoint), {"title": "Denied", "description": "x"}, format="json").status_code, 403)
+            response = self.client.patch(reverse(detail, args=[obj.id]), {"title": "Updated"}, format="json")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(self.client.delete(reverse(detail, args=[obj.id])).status_code, 403)
+
+    def test_owner_can_create_update_and_delete(self):
+        self.client.force_authenticate(user=self.owner)
+        for endpoint, detail, payload in (("api:experience-list", "api:experience-detail", {"title": "New job", "description": "Work", "category": "full-time"}),
+                                          ("api:education-list", "api:education-detail", {"title": "New school", "description": "Study", "category": "SMA"})):
+            response = self.client.post(reverse(endpoint), payload, format="json")
+            self.assertEqual(response.status_code, 201)
+            detail_url = reverse(detail, args=[response.data["id"]])
+            self.assertEqual(self.client.patch(detail_url, {"title": "Changed"}, format="json").status_code, 200)
+            self.assertEqual(self.client.delete(detail_url).status_code, 204)
+
+    def test_text_is_stripped_and_blank_title_rejected(self):
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.patch(reverse("api:experience-detail", args=[self.experience.id]),
+                                     {"title": " <b>Clean</b> "}, format="json")
+        self.assertEqual(response.data["title"], "Clean")
+        response = self.client.patch(reverse("api:education-detail", args=[self.education.id]),
+                                     {"title": " <b></b> "}, format="json")
+        self.assertEqual(response.status_code, 400)

@@ -55,11 +55,11 @@
     {% if user.is_superuser %}
         {% include "components/experience_form_modal.html" %}
     {% endif %}
+    {% csrf_token %}
 
     <script>
     // Konfigurasi
-    const BASE_EXPERIENCES_ENDPOINT = "{% url 'main:get_experiences_json' %}";
-    const CREATE_EXPERIENCE_ENDPOINT = "{% url 'main:create_experience_ajax' %}";
+    const BASE_EXPERIENCES_ENDPOINT = "{% url 'api:experience-list' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const CAN_CHANGE = "{{ perms.main.change_experience|yesno:'true,false' }}" === "true";
     
@@ -92,8 +92,8 @@
     }
 
     function buildExperienceCardElement(item) {
-        const exp = item.fields;
-        const expId = item.pk;
+        const exp = item;
+        const expId = item.id;
 
         const articleElement = document.createElement('article');
         articleElement.className = 'experience-card';
@@ -103,25 +103,19 @@
             : '';
 
         const statusHtml = exp.is_ongoing 
-            ? `<p class="experience-status">(Sedang Berlangsung) ${escapeHtml(exp.started_at_fmt)} - Present</p>`
-            : `<p class="experience-status">(Selesai) ${escapeHtml(exp.started_at_fmt)} - ${escapeHtml(exp.ended_at_fmt)}</p>`;
+            ? `<p class="experience-status">(Sedang Berlangsung) ${escapeHtml(formatDate(exp.started_at))} - Present</p>`
+            : `<p class="experience-status">(Selesai) ${escapeHtml(formatDate(exp.started_at))} - ${escapeHtml(formatDate(exp.ended_at))}</p>`;
 
-        const editUrl = "{% url 'main:edit_experience' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', expId);
-        const deleteUrl = "{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', expId);
+        
 
         let editHtml = '';
         if (CAN_CHANGE) {
-            editHtml = `<a href="${editUrl}" class="button button-secondary">Edit</a>`;
+            editHtml = `<button type="button" class="button button-secondary" data-action="edit" data-id="${escapeHtml(expId)}" data-title="${escapeHtml(exp.title)}" data-description="${escapeHtml(exp.description)}">Edit</button>`;
         }
 
         let deleteHtml = '';
         if (IS_SUPERUSER) {
-            deleteHtml = `
-                <form method="post" action="${deleteUrl}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="button button-danger" onclick="return confirm('Yakin ingin menghapus experience ini?');">Hapus</button>
-                </form>
-            `;
+            deleteHtml = `<button type="button" class="button button-danger" data-action="delete" data-id="${escapeHtml(expId)}">Hapus</button>`;
         }
 
         articleElement.innerHTML = `
@@ -141,6 +135,11 @@
         return articleElement;
     }
 
+    function formatDate(value) {
+        if (!value) return '';
+        return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(value));
+    }
+
     function closeExperienceModal() {
         const modal = document.getElementById("add-experience-modal");
         if (modal) modal.hidePopover();
@@ -152,7 +151,8 @@
 
         try {
             displayPageSection({ showLoading: true });
-            const url = searchQuery ? `${BASE_EXPERIENCES_ENDPOINT}?title=${encodeURIComponent(searchQuery)}` : BASE_EXPERIENCES_ENDPOINT;
+            const url = new URL(BASE_EXPERIENCES_ENDPOINT, window.location.origin);
+            if (searchQuery) url.searchParams.set('title', searchQuery);
             
             const response = await fetch(url, {
                 headers: { 'Accept': 'application/json' },
@@ -212,41 +212,68 @@
         return cookieValue;
     }
 
+    async function writeExperience(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: payload ? JSON.stringify(payload) : undefined,
+        });
+        const data = response.status === 204 ? null : await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const messages = Object.values(data || {}).flat().filter(value => typeof value === 'string');
+            throw new Error(messages.join(' ') || `Terjadi kesalahan (HTTP ${response.status}).`);
+        }
+        return data;
+    }
+
     async function addExperience(event) {
         event.preventDefault();
         const submitButton = experienceForm.querySelector('button[type="submit"]');
         submitButton.disabled = true;
 
         try {
-            const response = await fetch(CREATE_EXPERIENCE_ENDPOINT, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: new FormData(experienceForm),
-            });
-            const result = await response.json().catch(() => ({}));
-
-            if (response.ok) {
+            const fields = new FormData(experienceForm);
+            const payload = Object.fromEntries(['title', 'description', 'category', 'thumbnail', 'started_at', 'ended_at'].map(name => [name, fields.get(name) || null]));
+            await writeExperience(BASE_EXPERIENCES_ENDPOINT, 'POST', payload);
+            {
                 experienceForm.reset();
                 closeExperienceModal();
                 showToast('Berhasil', 'Experience baru berhasil ditambahkan!', 'success');
                 fetchExperiences(searchInput.value.trim());
-            } else {
-                const errorMessages = result.errors
-                    ? Object.values(result.errors).flat().map(error => error.message)
-                    : [result.message || `Terjadi kesalahan (status ${response.status}).`];
-                showToast('Gagal menambahkan experience', errorMessages.join(' '), 'error');
             }
         } catch (error) {
             console.error('Error adding experience:', error);
-            showToast('Failed', 'Gagal menambahkan Experience. Silakan coba lagi.', 'error');
+            showToast('Gagal menambahkan experience', error.message, 'error');
         } finally {
             submitButton.disabled = false;
         }
     }
 
-    if (experienceForm) {
-        experienceForm.addEventListener('submit', addExperience);
-    }
+    if (experienceForm) experienceForm.addEventListener('submit', addExperience);
+
+    gridContainer.addEventListener('click', async function(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+        const id = button.dataset.id;
+        const url = BASE_EXPERIENCES_ENDPOINT + id + '/';
+        let payload;
+        if (button.dataset.action === 'delete' && !window.confirm('Yakin ingin menghapus experience ini?')) return;
+        if (button.dataset.action === 'edit') {
+            const title = window.prompt('Nama experience:', button.dataset.title);
+            if (title === null) return;
+            const description = window.prompt('Deskripsi experience:', button.dataset.description);
+            if (description === null) return;
+            payload = { title, description };
+        }
+        button.disabled = true;
+        try {
+            await writeExperience(url, button.dataset.action === 'delete' ? 'DELETE' : 'PATCH', payload);
+            showToast('Berhasil', button.dataset.action === 'delete' ? 'Experience dihapus.' : 'Experience diperbarui.', 'success');
+            await fetchExperiences(searchInput.value.trim());
+        } catch (error) {
+            showToast('Permintaan gagal', error.message, 'error');
+        } finally { button.disabled = false; }
+    });
 
     fetchExperiences(searchInput.value.trim());
     </script>

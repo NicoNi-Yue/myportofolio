@@ -109,3 +109,32 @@ Kalau kita memilih untuk tidak menggunakan await, programnya akan langsung jalan
 Data yang ditampilkan lewat AJAX atau JavaScript itu lebih rentan karena seringkali kode langsung dimasukkan ke halaman secara mentah-mentah, sehingga browser bisa termanipulasi dan malah menjalankan kode anomali tersebut. 
 
 Berbeda halnya kalau langsung lewat template Django, karena Django sudah secara otomatis menyaring dan mengamankan teks dari kode-kode berbahaya sebelum ditampilkan ke layar.
+
+
+### Tugas 6
+
+1. 
+- REST (Representational State Transfer) adalah standar arsitektur antarmuka perangkat lunak untuk sistem terdistribusi yang mengharuskan interaksi klien dan server yang bersifat stateless, memanfaatkan metode HTTP secara terstruktur, dan berbasis resource.
+- Mengembalikan data dalam format JSON saja belum cukup membuat API tersebut RESTful jika arsitekturnya mengabaikan prinsip utama REST, misalnya, API masih menggunakan metode POST untuk mengambil (membaca) data atau masih menyimpan state klien di memori server.
+
+Perbedaan terkait Put and Patch:
+- PUT: Digunakan untuk memperbarui atau menggantikan keseluruhan representasi resource. Klien wajib mengirimkan payload yang berisi seluruh atribut dari objek tersebut. Jika ada atribut yang tidak disertakan, nilainya berisiko diubah menjadi null atau nilai default. Contoh: Memperbarui data profil secara utuh melalui halaman Edit Profile (nama, jurusan, bio, dan angkatan dikirim bersamaan menimpa data lama.)
+- PATCH: Digunakan untuk pembaruan parsial terhadap suatu resource. Klien cukup mengirimkan atribut spesifik yang ingin diubah tanpa menyentuh kolom lainnya. 
+Contoh: Menekan tombol Star pada daftar proyek atau mengubah status checkbox tugas, di mana API hanya menerima dan memperbarui satu atribut boolean tanpa mengharuskan pengiriman sisa deskripsi proyek.
+
+2. Serializer berperan ganda sebagai penerjemah dan validator. Serializer mengubah tipe data kompleks (seperti queryset dan model instance bawaan Django) menjadi tipe data asli Python (dictionary, list, string) yang bisa dengan mudah di-render ke format JSON, dan sebaliknya (deserialisasi) dari JSON kembali menjadi objek data.
+Keuntungan menggunakan serializer dibandingkan merakit dictionary secara manual dengan JsonResponse:
+- Tidak perlu memetakan atribut model satu per satu secara manual
+- Validasi input data dijalankan otomatis berdasarkan definisi dari model atau konfigurasi Serializer.
+
+3. 
+- Autentikasi: Proses memverifikasi identitas pengguna (memeriksa siapa yang sedang mengakses, misalnya melalui validasi sesi, cookie, atau token).   
+- Otorisasi: Proses memverifikasi hak akses (memeriksa apa yang diizinkan untuk dilakukan oleh pengguna terautentikasi tersebut, misalnya memastikan hanya pembuat proyek yang boleh menghapusnya). 
+
+Menyembunyikan tombol aksi (delete/edit) di level template hanya memodifikasi antarmuka visual. Jika seorang penyerang mengetahui URL API-nya, mereka bisa dengan mudah menembakkan request secara langsung melalui tools seperti Postman atau fetch browser. Permission class di level server merupakan pintu gerbang utama yang menjamin permintaan mutlak ditolak (403 Forbidden) jika pengguna tidak memiliki izin, terlepas dari bagaimana atau dari mana request tersebut dikirimkan.
+
+4. 
+- Mekanisme SessionAuthentication sangat mengandalkan cookie session dari browser. Karena peramban secara otomatis selalu menyertakan cookie otentikasi ini pada setiap permintaan ke domain yang bersangkutan, API menjadi sangat rentan terhadap insiden CSRF. Untuk memastikan request manipulasi data (seperti POST, PUT, DELETE) memang murni berasal dari frontend resmi dan bukan dipicu secara diam-diam oleh situs berbahaya di tab lain, sistem harus memvalidasi token CSRF eksplisit (biasanya via header X-CSRFToken).
+
+Dalam tahap testing, metode force_authenticate milik DRF secara instan memaksa injeksi objek user ke dalam request untuk menyimulasikan otentikasi. Akibatnya, alur verifikasi ini sepenuhnya menerobos dan melompati lapisan middleware keamanan reguler. Tes akan selalu dilaporkan sukses (200 OK) karena peladen tidak sempat mengecek ketiadaan token CSRF. 
+Oleh karena itu, pengujian dengan force_authenticate tidak dapat digunakan sebagai pembuktian bahwa mekanisme perlindungan CSRF API sudah terpasang dan berfungsi dengan benar.

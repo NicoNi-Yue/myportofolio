@@ -7,40 +7,98 @@
         <section class="education-section" id="education">
             <div class="container">
                 <p class="section-kicker">Edukasi yang sudah saya tempuh</p>
-                <h1>Education</h1>
-
-                <div class="education-grid">
-                    {% for education in education_list %}
-                        <article class="education-card">
-                            {% if education.image %}
-                                <div class="education-logo-wrapper">
-                                    <img src="{{ education.logo }}" alt="{{ education.title }}">
-                                </div>
-                            {% endif %}
-
-                            <div class="education-content">
-                                <span class="education-category">
-                                    {{ education.get_category_display }}
-                                </span>
-                                <h2>{{ education.title }}</h2>
-                                <p class="education-description">
-                                    {{ education.description }}
-                                </p>
-
-                                {% if education.is_ongoing %}
-                                    <p class="education-status">(Sedang Berlangsung) {{education.started_at|date:"F Y"}} - Present</p>
-                                {% else %}
-                                    <p class="education-status">(Selesai) {{education.started_at|date:"F Y"}} - {{education.ended_at|date:"F Y"}}</p>
-                                {% endif %}
-                            </div>
-                        </article>
-                    {% empty %}
-                        <p class="empty-state">
-                            Mahasiswa satu ini belum punya histori edukasi.
-                        </p>
-                    {% endfor %}
+                <div class="project-header">
+                    <h1>Education</h1>
+                    {% if user.is_superuser %}<button type="button" class="button" id="add-education">Tambah Education</button>{% endif %}
                 </div>
+
+                <form id="education-search-form" class="experience-search project-search">
+                    <input type="search" id="education-search-input" name="title"
+                           placeholder="Cari berdasarkan nama pendidikan"
+                           class="experience-search__input project-search__input"
+                           aria-label="Cari berdasarkan nama pendidikan">
+                    <button type="submit" class="button">Cari</button>
+                </form>
+                <div id="education-loading" class="empty-state"><p>Memuat education...</p></div>
+                <div id="education-error" class="empty-state hide"><p>Gagal memuat data education. Silakan coba lagi.</p></div>
+                <div id="education-empty" class="empty-state hide"><p>Belum ada riwayat pendidikan yang ditambahkan atau ditemukan.</p></div>
+                <div id="education-grid" class="education-grid"></div>
             </div>
         </section>
     </main>
+    {% csrf_token %}
+    <script>
+    const EDUCATION_ENDPOINT = "{% url 'api:education-list' %}";
+    const educationGrid = document.getElementById('education-grid');
+    const educationSearch = document.getElementById('education-search-input');
+    const educationForm = document.getElementById('education-search-form');
+    let educationTimer;
+    function safeText(value) {
+        return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+    }
+    function educationDate(value) {
+        return value ? new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(value)) : '';
+    }
+    function renderEducation(item) {
+        const card = document.createElement('article');
+        card.className = 'education-card';
+        const canEdit = "{{ perms.main.change_education|yesno:'true,false' }}" === "true";
+        const isOwner = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+        card.innerHTML = `${item.logo ? `<div class="education-logo-wrapper"><img src="${safeText(item.logo)}" alt="${safeText(item.title)}"></div>` : ''}
+            <div class="education-content"><span class="education-category">${safeText(item.category_display)}</span>
+            <h2>${safeText(item.title)}</h2><p class="education-description">${safeText(item.description)}</p>
+            <p class="education-status">${item.is_ongoing ? '(Sedang Berlangsung)' : '(Selesai)'} ${safeText(educationDate(item.started_at))} - ${item.is_ongoing ? 'Present' : safeText(educationDate(item.ended_at))}</p>
+            <div class="experience-actions">${canEdit ? `<button class="button button-secondary" data-action="edit" data-id="${safeText(item.id)}" data-title="${safeText(item.title)}" data-description="${safeText(item.description)}">Edit</button>` : ''}${isOwner ? `<button class="button button-danger" data-action="delete" data-id="${safeText(item.id)}">Hapus</button>` : ''}</div></div>`;
+        return card;
+    }
+    async function loadEducation() {
+        const loading = document.getElementById('education-loading');
+        const error = document.getElementById('education-error');
+        const empty = document.getElementById('education-empty');
+        loading.classList.remove('hide'); error.classList.add('hide'); empty.classList.add('hide');
+        const url = new URL(EDUCATION_ENDPOINT, window.location.origin);
+        if (educationSearch.value.trim()) url.searchParams.set('title', educationSearch.value.trim());
+        try {
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            educationGrid.replaceChildren(...data.map(renderEducation));
+            empty.classList.toggle('hide', data.length !== 0);
+        } catch (err) { error.classList.remove('hide'); }
+        finally { loading.classList.add('hide'); }
+    }
+    function csrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''; }
+    async function mutateEducation(method, id, payload) {
+        const response = await fetch(EDUCATION_ENDPOINT + (id ? id + '/' : ''), { method,
+            headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() },
+            body: payload ? JSON.stringify(payload) : undefined });
+        const data = response.status === 204 ? null : await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(Object.values(data || {}).flat().join(' ') || `HTTP ${response.status}`);
+    }
+    educationGrid.addEventListener('click', async event => {
+        const button = event.target.closest('button[data-action]'); if (!button) return;
+        if (button.dataset.action === 'delete' && !confirm('Yakin ingin menghapus education ini?')) return;
+        let payload;
+        if (button.dataset.action === 'edit') {
+            const title = prompt('Nama pendidikan:', button.dataset.title); if (title === null) return;
+            const description = prompt('Deskripsi:', button.dataset.description); if (description === null) return;
+            payload = { title, description };
+        }
+        try { await mutateEducation(button.dataset.action === 'delete' ? 'DELETE' : 'PATCH', button.dataset.id, payload); await loadEducation(); }
+        catch (error) { alert(error.message); }
+    });
+    const addEducationButton = document.getElementById('add-education');
+    if (addEducationButton) addEducationButton.addEventListener('click', async () => {
+        const title = prompt('Nama pendidikan:'); if (!title) return;
+        const description = prompt('Deskripsi pendidikan:'); if (description === null) return;
+        const category = prompt('Kategori (SD, SMP, SMA, Kuliah):', 'Kuliah'); if (!category) return;
+        const logo = prompt('URL logo (opsional):', '');
+        try { await mutateEducation('POST', null, { title, description, category, logo: logo || null }); await loadEducation(); }
+        catch (error) { alert(error.message); }
+    });
+    educationSearch.addEventListener('input', () => { clearTimeout(educationTimer); educationTimer = setTimeout(loadEducation, 300); });
+    educationForm.addEventListener('submit', event => { event.preventDefault(); loadEducation(); });
+    loadEducation();
+    </script>
 {% endblock content %}
